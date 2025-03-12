@@ -13,7 +13,12 @@ const app = express(); //aqui estou iniciando o app
 const Mulher = require('./mulherModel');
 
 app.use(express.json()); //aqui estou configurando o app para usar json, isso é um middleware ou seja, é executado antes de chamar a rota
-app.use(cors()); //aqui estou liberando meu aplicativo para ser usada a partir do frontend
+const corsOptions = {
+    origin: 'https://api-backend-frontend.vercel.app/', // Substitua pela URL do seu frontend
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions)); //aqui estou liberando meu aplicativo para ser usada a partir do frontend
 const porta = 3333; //aqui estou criando a porta
 
 //GET
