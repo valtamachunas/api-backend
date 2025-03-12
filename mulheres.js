@@ -4,6 +4,7 @@
 const express = require('express'); //aqui estou iniciando o express
 const router = express.Router(); //aqui estou configurando a primeira parte da rota
 const cors = require('cors'); //aqui estou trazendo o pacote cors que permite consumir a API no frontend
+const helmet = require('helmet'); // aqui estou importando o helmet para adicionar cabeçalhos de segurança
 
 const conectaBancoDeDados = require('./bancoDeDados'); //aqui estou ligando ao arquivo bancoDeDados
 conectaBancoDeDados(); //aqui estou chamando a função que conecta o banco de dados
@@ -14,11 +15,13 @@ const Mulher = require('./mulherModel');
 
 app.use(express.json()); //aqui estou configurando o app para usar json, isso é um middleware ou seja, é executado antes de chamar a rota
 const corsOptions = {
-    origin: 'https://api-backend-frontend.vercel.app/', // Substitua pela URL do seu frontend
+    origin: 'https://api-backend-frontend.vercel.app/',
     optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions)); //aqui estou liberando meu aplicativo para ser usada a partir do frontend
+app.use(helmet()); // aqui estou adicionando o helmet para adicionar cabeçalhos de segurança
+
 const porta = 3333; //aqui estou criando a porta
 
 //GET
