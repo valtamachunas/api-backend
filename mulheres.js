@@ -1,83 +1,84 @@
+//meu servidor
+
+
 const express = require('express'); //aqui estou iniciando o express
 const router = express.Router(); //aqui estou configurando a primeira parte da rota
-const { v4: uuidv4 } = require('uuid'); //essa biblioteca instanciada através do comando npm no terminal, serve para gerar um id único
+const cors = require('cors'); //aqui estou trazendo o pacote cors que permite consumir a API no frontend
+
 const conectaBancoDeDados = require('./bancoDeDados'); //aqui estou ligando ao arquivo bancoDeDados
 conectaBancoDeDados(); //aqui estou chamando a função que conecta o banco de dados
 
 const app = express(); //aqui estou iniciando o app
+
+const Mulher = require('./mulherModel');
+
 app.use(express.json()); //aqui estou configurando o app para usar json, isso é um middleware ou seja, é executado antes de chamar a rota
+app.use(cors()); //aqui estou liberando meu aplicativo para ser usada a partir do frontend
 const porta = 3333; //aqui estou criando a porta
 
-//aqui estou criando lista incial de mulheres
-const mulheres = [
-    {
-        id: '1',
-        nome: 'Valeska Tamachunas',
-        imagem: 'https://avatars.githubusercontent.com/u/66183982?v=4',
-        minibio: 'Desenvolvedora de software'
-    },
-
-    {
-        id: '2',
-        nome: 'Jenifer Maciel',
-        imagem: 'https://media.licdn.com/dms/image/v2/D4D03AQHwXqhNmJVPAw/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1722098292481?e=1746057600&v=beta&t=7U6ZfyY0KCucssedYi4pFoAP0UMTP5qTWmuJzwxBUvA',
-        minibio: 'UX Designer'
-    },
-
-    {
-        id: '3',
-        nome: 'Loiane Groner',
-        imagem: 'https://avatars.githubusercontent.com/u/59545?v=4',
-        minibio: 'Engenheira de software'
-    }
-]
-
 //GET
-function mostraMulheres(request, response) {
-    response.json(mulheres);
+async function mostraMulheres(request, response) {
+    try {
+        const mulheresVindasDoBancoDeDados = await Mulher.find();
+        response.json(mulheresVindasDoBancoDeDados);
+    }
+    catch (erro) {
+        console.log(erro)
+    }
 }
 
 //POST
-function criaMulher(request, response) {
-    const novaMulher = {
-        id: uuidv4(),
+async function criaMulher(request, response) { //pega as informações quando algum usuário preencher o formulário, pega no corpo da solicitação
+    const novaMulher = new Mulher({
         nome: request.body.nome,
         imagem: request.body.imagem,
-        minibio: request.body.minibio
+        minibio: request.body.minibio,
+        citacao: request.body.citacao
+    })
+    try {
+        const mulherCriada = await novaMulher.save() //to me conectando com o serviço externo ou seja o banco de dados, por isso tenho que esperar(await)
+        response.status(201).json(mulherCriada)
     }
-    mulheres.push(novaMulher);
-    response.json(mulheres);
+    catch (erro) {
+        console.log(erro)
+    }
 }
 
 //PATCH
-function corrigeMulher(request, response) {
-    function encontraMulher(mulher) {
-        if (mulher.id === request.params.id) {
-            return mulher;
+async function corrigeMulher(request, response) {
+    try {
+        const mulherEncontrada = await Mulher.findById(request.params.id); //params pega da url
+
+        if (request.body.nome) {
+            mulherEncontrada.nome = request.body.nome;
         }
+        if (request.body.imagem) {
+            mulherEncontrada.imagem = request.body.imagem;
+        }
+        if (request.body.minibio) {
+            mulherEncontrada.minibio = request.body.minibio;
+        }
+        if (request.body.citacao) {
+            mulherEncontrada.citacao = request.body.citacao;
+        }
+        const mulherAtualizadaNoBancoDeDados = await mulherEncontrada.save()
+        response.json(mulherAtualizadaNoBancoDeDados)
     }
-    const mulherEncontrada = mulheres.find(encontraMulher);
-    if (request.body.nome) {
-        mulherEncontrada.nome = request.body.nome;
+    catch (erro) {
+        console.log(erro)
     }
-    if (request.body.imagem) {
-        mulherEncontrada.imagem = request.body.imagem;
-    }
-    if (request.body.minibio) {
-        mulherEncontrada.minibio = request.body.minibio;
-    }
-    response.json(mulheres);
 }
 
 //DELETE
-function deletaMulher(request, response) {
-    function todasMenosEla(mulher) {
-        if (mulher.id !== request.params.id) {
-            return mulher
-        }
+async function deletaMulher(request, response) {
+    try {
+        await Mulher.findByIdAndDelete(request.params.id)
+        response.json({ mensagem: "Mulher deletada com sucesso!" })
     }
-    const mulheresQueFicaram = mulheres.filter(todasMenosEla)
-    response.json(mulheresQueFicaram)
+    catch (erro) {
+        console.log(erro)
+    }
+
 }
 
 //PORTA
